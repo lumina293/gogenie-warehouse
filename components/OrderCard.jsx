@@ -1,4 +1,28 @@
+import UrgencyBadge from './UrgencyBadge';
+
 export default function OrderCard({ order }) {
+    // Calculate urgency level for styling
+    const getUrgencyLevel = (deadline) => {
+        const now = new Date();
+        const diff = new Date(deadline) - now;
+        const hours = diff / (1000 * 60 * 60);
+
+        if (hours < 0) return 'overdue';
+        if (hours <= 1) return 'critical';
+        if (hours <= 4) return 'warning';
+        return 'normal';
+    };
+
+    const urgency = getUrgencyLevel(order.shipByDeadline);
+
+    // Define border and background styles based on urgency
+    const urgencyStyles = {
+        overdue: 'border-red-500 border-2 bg-red-50',
+        critical: 'border-red-400 border-2 bg-red-50',
+        warning: 'border-yellow-400 border-2 bg-yellow-50',
+        normal: 'border-gray-200 bg-white'
+    };
+
     // Format the deadline date/time
     const formatDeadline = (date) => {
         return new Date(date).toLocaleString('en-US', {
@@ -41,16 +65,19 @@ export default function OrderCard({ order }) {
     };
 
     return (
-        <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-            {/* Header Row */}
+        <div className={`rounded-lg p-4 hover:shadow-md transition-shadow ${urgencyStyles[urgency]}`}>
+            {/* Header Row with Urgency Badge */}
             <div className="flex justify-between items-start mb-3">
-                <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                        {order.orderNumber}
-                    </h3>
+                <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                            {order.orderNumber}
+                        </h3>
+                        <UrgencyBadge deadline={order.shipByDeadline} />
+                    </div>
                     <p className="text-sm text-gray-600">{order.customerName}</p>
                 </div>
-                <div className="text-right">
+                <div className="text-right ml-3">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
             {order.slaType}
           </span>
@@ -78,7 +105,7 @@ export default function OrderCard({ order }) {
             </div>
 
             {/* Deadline Information - Enhanced */}
-            <div className="border-t pt-3">
+            <div className="border-t border-gray-300 pt-3">
                 <div className="space-y-2">
                     <div className="flex justify-between items-center text-sm">
                         <div>
@@ -92,7 +119,11 @@ export default function OrderCard({ order }) {
             <span className="text-xs text-gray-500 capitalize">
               {getRelativeTime(order.shipByDeadline)}
             </span>
-                        <span className="text-sm font-bold text-gray-900">
+                        <span className={`text-sm font-bold ${
+                            urgency === 'critical' || urgency === 'overdue' ? 'text-red-700' :
+                                urgency === 'warning' ? 'text-yellow-700' :
+                                    'text-gray-900'
+                        }`}>
               {getTimeRemaining(order.shipByDeadline)}
             </span>
                     </div>
@@ -100,7 +131,7 @@ export default function OrderCard({ order }) {
             </div>
 
             {/* Items Preview */}
-            <div className="mt-3 pt-3 border-t">
+            <div className="mt-3 pt-3 border-t border-gray-300">
                 <p className="text-xs text-gray-500 mb-1">Items:</p>
                 <div className="space-y-1">
                     {order.items.map((item, index) => (
