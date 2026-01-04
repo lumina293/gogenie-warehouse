@@ -9,20 +9,35 @@ export default function OrderCard({ order }) {
         });
     };
 
-    // Calculate time remaining
+    // Calculate time remaining with better formatting
     const getTimeRemaining = (deadline) => {
         const now = new Date();
         const diff = new Date(deadline) - now;
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const totalMinutes = Math.floor(diff / (1000 * 60));
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
 
-        if (hours < 0) return 'OVERDUE';
-        if (hours === 0) return `${minutes}m remaining`;
-        if (hours < 24) return `${hours}h ${minutes}m remaining`;
+        if (totalMinutes < 0) return 'OVERDUE';
+        if (hours === 0) return `${minutes} min`;
+        if (hours < 24) return `${hours}h ${minutes}m`;
 
         const days = Math.floor(hours / 24);
         const remainingHours = hours % 24;
-        return `${days}d ${remainingHours}h remaining`;
+        return `${days}d ${remainingHours}h`;
+    };
+
+    // Get relative time description
+    const getRelativeTime = (deadline) => {
+        const now = new Date();
+        const diff = new Date(deadline) - now;
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+
+        if (hours < 0) return 'overdue';
+        if (hours < 1) return 'due very soon';
+        if (hours < 4) return 'due today';
+        if (hours < 24) return 'due today';
+        if (hours < 48) return 'due tomorrow';
+        return 'due in ' + Math.floor(hours / 24) + ' days';
     };
 
     return (
@@ -62,17 +77,24 @@ export default function OrderCard({ order }) {
                 </div>
             </div>
 
-            {/* Deadline Information */}
+            {/* Deadline Information - Enhanced */}
             <div className="border-t pt-3">
-                <div className="flex justify-between items-center text-sm">
-                    <div>
-                        <span className="text-gray-500">Ship By:</span>
-                        <span className="ml-2 font-medium text-gray-900">
-              {formatDeadline(order.shipByDeadline)}
-            </span>
+                <div className="space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                        <div>
+                            <span className="text-gray-500">Ship By:</span>
+                            <span className="ml-2 font-medium text-gray-900">
+                {formatDeadline(order.shipByDeadline)}
+              </span>
+                        </div>
                     </div>
-                    <div className="text-gray-600 font-medium">
-                        {getTimeRemaining(order.shipByDeadline)}
+                    <div className="flex justify-between items-center">
+            <span className="text-xs text-gray-500 capitalize">
+              {getRelativeTime(order.shipByDeadline)}
+            </span>
+                        <span className="text-sm font-bold text-gray-900">
+              {getTimeRemaining(order.shipByDeadline)}
+            </span>
                     </div>
                 </div>
             </div>
